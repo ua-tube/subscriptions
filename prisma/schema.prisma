@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Creator {
+  id                 String         @id @db.Uuid
+  displayName        String         @map("display_name")
+  nickname           String
+  thumbnailUrl       String?        @map("thumbnail_url")
+  subscribersCount   BigInt         @map("subscribers_count")
+  subscriptionsCount Int            @map("subscriptions_count")
+  Subscriptions      Subscription[] @relation(name: "creator_subscription")
+  Subscribers        Subscription[] @relation(name: "target_subscription")
+
+  @@map("creators")
+}
+
+model Subscription {
+  creatorId String   @map("creator_id") @db.Uuid
+  Creator   Creator  @relation(fields: [creatorId], references: [id], name: "creator_subscription")
+  targetId  String   @map("target_id") @db.Uuid
+  Target    Creator  @relation(fields: [targetId], references: [id], name: "target_subscription")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([creatorId, targetId])
+  @@map("subscriptions")
+}
