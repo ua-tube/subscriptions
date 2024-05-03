@@ -8,10 +8,10 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { SubscriptionsService } from '../subscriptions.service';
-import { AuthUserGuard } from '../../common/guards';
-import { SubscribeRequestDto } from '../dto';
-import { UserId } from '../../common/decorators';
+import { SubscriptionsService } from './subscriptions.service';
+import { AuthUserGuard } from '../common/guards';
+import { SubscribeRequestDto } from './dto';
+import { UserId } from '../common/decorators';
 
 @Controller('subscriptions')
 export class SubscriptionsController {
