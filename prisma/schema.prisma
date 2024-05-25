@@ -14,17 +14,17 @@ model Creator {
   thumbnailUrl       String?        @map("thumbnail_url")
   subscribersCount   BigInt         @map("subscribers_count")
   subscriptionsCount Int            @map("subscriptions_count")
-  Subscriptions      Subscription[] @relation(name: "creator_subscription")
-  Subscribers        Subscription[] @relation(name: "target_subscription")
+  subscriptions      Subscription[] @relation(name: "creator_subscription")
+  subscribers        Subscription[] @relation(name: "target_subscription")
 
   @@map("creators")
 }
 
 model Subscription {
   creatorId String   @map("creator_id") @db.Uuid
-  Creator   Creator  @relation(fields: [creatorId], references: [id], name: "creator_subscription")
+  creator   Creator  @relation(fields: [creatorId], references: [id], name: "creator_subscription", onDelete: Cascade)
   targetId  String   @map("target_id") @db.Uuid
-  Target    Creator  @relation(fields: [targetId], references: [id], name: "target_subscription")
+  target    Creator  @relation(fields: [targetId], references: [id], name: "target_subscription", onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@id([creatorId, targetId])

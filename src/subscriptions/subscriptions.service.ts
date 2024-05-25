@@ -1,11 +1,39 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PersistNotificationEvent } from '../common/events';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class SubscriptionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async subscribe(creatorId: string, targetId: string) {
+    const [creator, target] = await this.prisma.$transaction([
+      this.prisma.creator.findUnique({
+        where: { id: creatorId },
+        select: { nickname: true },
+      }),
+      this.prisma.creator.findUnique({
+        where: { id: targetId },
+        select: {
+          nickname: true,
+          thumbnailUrl: true,
+        },
+      }),
+    ]);
+
+    if (!creator) {
+      throw new BadRequestException('Creator not found');
+    }
+
+    if (!target) {
+      throw new BadRequestException('Target not found');
+    }
+
     if (creatorId === targetId) {
       throw new BadRequestException(
         'Subscribing your own self is not supported',
@@ -27,6 +55,20 @@ export class SubscriptionsService {
         }),
       ]);
     });
+
+    this.eventEmitter.emit(
+      'persist_notification',
+      new PersistNotificationEvent({
+        notificationId: randomUUID(),
+        creatorId,
+        message: `@${target.nickname} підписався на вас!`,
+        url: `/channel/${target.nickname}`,
+        channel: {
+          nickname: target.nickname,
+          thumbnailUrl: target.thumbnailUrl,
+        },
+      }),
+    );
   }
 
   async unsubscribe(creatorId: string, targetId: string) {
@@ -57,7 +99,7 @@ export class SubscriptionsService {
     return this.prisma.subscription.findMany({
       where: { creatorId },
       select: {
-        Target: {
+        target: {
           select: {
             id: true,
             displayName: true,

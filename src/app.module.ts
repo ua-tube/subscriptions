@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import Joi from 'joi';
 import { LoggingInterceptor } from './common/interceptors';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CreatorsModule } from './creators/creators.module';
 import { HealthModule } from './health/health.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -23,9 +26,18 @@ import { HealthModule } from './health/health.module';
         RABBITMQ_URL: Joi.string().required(),
       }),
     }),
+    RedisModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        url: configService.getOrThrow<string>('REDIS_URL'),
+        type: 'single',
+      }),
+    }),
+    EventEmitterModule.forRoot(),
     CreatorsModule,
     SubscriptionsModule,
     HealthModule,
+    NotificationsModule,
   ],
   providers: [
     {
