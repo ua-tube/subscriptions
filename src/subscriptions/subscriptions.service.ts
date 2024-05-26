@@ -21,6 +21,7 @@ export class SubscriptionsService {
         where: { id: targetId },
         select: {
           nickname: true,
+          displayName: true,
           thumbnailUrl: true,
         },
       }),
@@ -61,7 +62,7 @@ export class SubscriptionsService {
       new PersistNotificationEvent({
         notificationId: randomUUID(),
         creatorId,
-        message: `@${target.nickname} підписався на вас!`,
+        message: `${target.displayName} підписався на вас!`,
         url: `/channel/${target.nickname}`,
         channel: {
           nickname: target.nickname,

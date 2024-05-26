@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { PersistNotificationDto } from './dto';
-import { OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class NotificationsService {
   constructor(
     @InjectRedis()
     private readonly redis: Redis,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @OnEvent('persist_notification')
@@ -19,6 +20,7 @@ export class NotificationsService {
       'EX',
       90 * 24 * 60 * 60,
     );
+    this.eventEmitter.emit('notify', payload);
   }
 
   async getAllNotifications(creatorId: string) {

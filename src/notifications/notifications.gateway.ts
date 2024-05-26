@@ -10,6 +10,7 @@ import { isEmpty } from 'class-validator';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
+import { PersistNotificationDto } from './dto';
 
 @WebSocketGateway({
   cors: { origin: process.env.CLIENT_URL },
@@ -69,11 +70,11 @@ export class NotificationsGateway
   }
 
   @OnEvent('notify', { async: true, promisify: true })
-  async handleNotify(payload: { userId: string; notification: any }) {
-    this.logger.log(`notify emit to user (${payload.userId})`);
+  async handleNotify(payload: PersistNotificationDto) {
+    this.logger.log(`notify emit to user (${payload.creatorId})`);
     this.server
-      .to(this.getRoomName(payload.userId))
-      .emit('notification', payload.notification);
+      .to(this.getRoomName(payload.creatorId))
+      .emit('notification', payload);
   }
 
   private getRoomName(userId: string) {
