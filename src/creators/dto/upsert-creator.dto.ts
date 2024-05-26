@@ -3,4 +3,4 @@ export class UpsertCreatorDto {
   displayName: string;
   nickname: string;
   thumbnailUrl?: string;
-};
+}
