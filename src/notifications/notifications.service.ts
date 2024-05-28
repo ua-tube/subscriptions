@@ -14,8 +14,22 @@ export class NotificationsService {
 
   @OnEvent('persist_notification')
   async persistNotification(payload: PersistNotificationDto) {
+    const creatorKey = this.getKey(payload.creatorId);
+
+    const notificationIdsString = await this.redis.get(creatorKey);
+    const notifications = notificationIdsString
+      ? JSON.parse(notificationIdsString).push(payload.notificationId)
+      : [payload.notificationId];
+
+    await this.redis.set(creatorKey, JSON.stringify(notifications));
+
+    const notificationKey = this.getKey(
+      payload.creatorId,
+      payload.notificationId,
+    );
+
     await this.redis.set(
-      this.getKey(payload.creatorId, payload.notificationId),
+      notificationKey,
       JSON.stringify(payload),
       'EX',
       90 * 24 * 60 * 60,
@@ -24,49 +38,38 @@ export class NotificationsService {
   }
 
   async getAllNotifications(creatorId: string) {
-    const pattern = this.getKey(creatorId);
-    let cursor = '0';
-    const notifications = [];
+    const notificationIdsString = await this.redis.get(this.getKey(creatorId));
 
-    do {
-      const res = await this.redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
-      cursor = res[0];
-      const keys = res[1];
-      if (keys.length > 0) {
-        const values = await this.redis.mget(...keys);
-        notifications.push(...values);
-      }
-    } while (cursor !== '0');
+    const keys = notificationIdsString
+      ? JSON.parse(notificationIdsString).map((id: string) =>
+          this.getKey(creatorId, id),
+        )
+      : [];
 
-    return notifications;
+    return keys.length > 0 ? this.redis.mget(...keys) : [];
   }
 
   async deleteAllNotifications(creatorId: string) {
-    const pattern = this.getKey(creatorId);
-    let cursor = '0';
-    let deletedCount = 0;
+    const notificationIdsString = await this.redis.get(this.getKey(creatorId));
 
-    do {
-      const res = await this.redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
-      cursor = res[0];
-      const keys = res[1];
-      if (keys.length > 0) {
-        await this.redis.del(...keys);
-        deletedCount += keys.length;
-      }
-    } while (cursor !== '0');
+    const keys = notificationIdsString
+      ? JSON.parse(notificationIdsString).map((id: string) =>
+          this.getKey(creatorId, id),
+        )
+      : [];
 
+    const deletedCount = keys.length > 0 ? await this.redis.del(...keys) : 0;
     return { deletedCount };
   }
 
   async deleteNotificationById(notificationId: string, creatorId: string) {
-    const deletedCount = await this.redis.del(
-      this.getKey(creatorId, notificationId),
-    );
+    const key = this.getKey(creatorId, notificationId);
+    const deletedCount = await this.redis.del(key);
     return { deletedCount };
   }
 
   private getKey(creatorId: string, notificationId?: string) {
-    return `notifications:${creatorId}:${notificationId || '*'}`;
+    const prefix = `notifications:${creatorId}`;
+    return notificationId ? `${prefix}:${notificationId}` : prefix;
   }
 }

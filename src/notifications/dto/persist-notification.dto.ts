@@ -7,4 +7,5 @@ export class PersistNotificationDto {
     nickname: string;
     thumbnailUrl: string;
   };
+  createdAt: Date;
 }

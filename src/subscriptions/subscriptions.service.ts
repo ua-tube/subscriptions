@@ -121,7 +121,7 @@ export class SubscriptionsService {
   }
 
   async getSubscriptionInfo(creatorId: string) {
-    const subscription = await this.prisma.creator.findUnique({
+    const creator = await this.prisma.creator.findUnique({
       where: { id: creatorId },
       select: {
         id: true,
@@ -132,8 +132,11 @@ export class SubscriptionsService {
       },
     });
 
-    subscription.subscribersCount = `${subscription.subscribersCount}` as any;
+    if (!creator) throw new BadRequestException('Creator not found');
 
-    return subscription;
+    return {
+      ...creator,
+      subscribersCount: creator.subscribersCount.toString(),
+    };
   }
 }
