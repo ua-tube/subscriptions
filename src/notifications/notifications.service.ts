@@ -18,7 +18,7 @@ export class NotificationsService {
 
     const notificationIdsString = await this.redis.get(creatorKey);
     const notifications = notificationIdsString
-      ? JSON.parse(notificationIdsString).push(payload.notificationId)
+      ? [...JSON.parse(notificationIdsString), payload.notificationId]
       : [payload.notificationId];
 
     await this.redis.set(creatorKey, JSON.stringify(notifications));
@@ -41,24 +41,30 @@ export class NotificationsService {
     const notificationIdsString = await this.redis.get(this.getKey(creatorId));
 
     const keys = notificationIdsString
-      ? JSON.parse(notificationIdsString).map((id: string) =>
+      ? JSON.parse(notificationIdsString)?.map((id: string) =>
           this.getKey(creatorId, id),
-        )
+        ) || []
       : [];
 
-    return keys.length > 0 ? this.redis.mget(...keys) : [];
+    const values = keys.length > 0 ? await this.redis.mget(...keys) : [];
+    return values.map((v) => JSON.parse(v));
   }
 
   async deleteAllNotifications(creatorId: string) {
     const notificationIdsString = await this.redis.get(this.getKey(creatorId));
 
     const keys = notificationIdsString
-      ? JSON.parse(notificationIdsString).map((id: string) =>
+      ? JSON.parse(notificationIdsString)?.map((id: string) =>
           this.getKey(creatorId, id),
-        )
+        ) || []
       : [];
 
     const deletedCount = keys.length > 0 ? await this.redis.del(...keys) : 0;
+
+    if (deletedCount > 0) {
+      await this.redis.del(this.getKey(creatorId));
+    }
+
     return { deletedCount };
   }
 
