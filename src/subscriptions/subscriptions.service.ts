@@ -2,7 +2,6 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PersistNotificationEvent } from '../common/events';
-import { randomUUID } from 'crypto';
 
 @Injectable()
 export class SubscriptionsService {
@@ -58,7 +57,6 @@ export class SubscriptionsService {
     this.eventEmitter.emit(
       'persist_notification',
       new PersistNotificationEvent({
-        notificationId: randomUUID(),
         creatorId: targetId,
         message: `${creator.displayName} підписався на вас!`,
         url: `/channel/${creator.nickname}`,

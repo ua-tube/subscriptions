@@ -1,5 +1,6 @@
+import { randomUUID } from 'node:crypto';
+
 interface PersistNotificationConstructor {
-  notificationId: string;
   creatorId: string;
   message: string;
   url: string;
@@ -22,7 +23,7 @@ export class PersistNotificationEvent
   };
 
   constructor(notification: PersistNotificationConstructor) {
-    this.notificationId = notification.notificationId;
+    this.notificationId = randomUUID();
     this.creatorId = notification.creatorId;
     this.message = notification.message;
     this.url = notification.url;
