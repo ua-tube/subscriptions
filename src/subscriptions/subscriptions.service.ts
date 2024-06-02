@@ -15,14 +15,12 @@ export class SubscriptionsService {
     const [creator, target] = await this.prisma.$transaction([
       this.prisma.creator.findUnique({
         where: { id: creatorId },
-        select: { nickname: true },
+        select: { nickname: true, displayName: true, thumbnailUrl: true },
       }),
       this.prisma.creator.findUnique({
         where: { id: targetId },
         select: {
           nickname: true,
-          displayName: true,
-          thumbnailUrl: true,
         },
       }),
     ]);
@@ -61,12 +59,12 @@ export class SubscriptionsService {
       'persist_notification',
       new PersistNotificationEvent({
         notificationId: randomUUID(),
-        creatorId,
-        message: `${target.displayName} підписався на вас!`,
-        url: `/channel/${target.nickname}`,
+        creatorId: targetId,
+        message: `${creator.displayName} підписався на вас!`,
+        url: `/channel/${creator.nickname}`,
         channel: {
-          nickname: target.nickname,
-          thumbnailUrl: target.thumbnailUrl,
+          nickname: creator.nickname,
+          thumbnailUrl: creator.thumbnailUrl,
         },
       }),
     );
