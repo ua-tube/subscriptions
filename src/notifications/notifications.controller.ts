@@ -1,7 +1,6 @@
 import {
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Param,
   ParseUUIDPipe,
@@ -28,7 +27,7 @@ export class NotificationsController {
     ackMessage(context);
   }
 
-  //@UseGuards(AuthUserSseGuard)
+  @UseGuards(AuthUserSseGuard)
   @Sse('sse')
   sse(@UserId() userId: string) {
     return this.notificationsService.sse(userId);
