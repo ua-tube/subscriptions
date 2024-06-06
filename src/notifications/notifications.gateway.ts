@@ -15,6 +15,7 @@ import { PersistNotificationDto } from './dto';
 @WebSocketGateway({
   cors: { origin: process.env.CLIENT_URL },
   transports: ['websocket', 'polling'],
+  path: '/socket/notifications',
   namespace: 'notifications',
 })
 export class NotificationsGateway
