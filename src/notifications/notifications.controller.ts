@@ -1,9 +1,11 @@
 import {
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   ParseUUIDPipe,
+  Sse,
   UseGuards,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
@@ -24,6 +26,17 @@ export class NotificationsController {
   ) {
     await this.notificationsService.persistNotification(payload);
     ackMessage(context);
+  }
+
+  @UseGuards(AuthUserGuard)
+  @Sse('sse/:userId')
+  sse(
+    @Param('userId', ParseUUIDPipe) userIdFromPath: string,
+    @UserId() userId: string,
+  ) {
+    if (userIdFromPath !== userId) throw new ForbiddenException();
+
+    return this.notificationsService.sse(userId);
   }
 
   @UseGuards(AuthUserGuard)
