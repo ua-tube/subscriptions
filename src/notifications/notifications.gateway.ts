@@ -14,7 +14,7 @@ import { PersistNotificationDto } from './dto';
 
 @WebSocketGateway({
   cors: { origin: process.env.CLIENT_URL },
-  transports: ['websocket', 'polling'],
+  transports: ['websocket'],
   path: '/socket/notifications',
   namespace: 'notifications',
 })
@@ -29,15 +29,9 @@ export class NotificationsGateway
   constructor(private readonly configService: ConfigService) {}
 
   async handleConnection(socket: Socket) {
-    const handshakeAuthorization = socket?.handshake?.headers?.authorization;
+    const token = socket?.handshake?.auth?.token;
 
-    if (isEmpty(handshakeAuthorization)) {
-      this.server.to(socket.id).emit('error', new UnauthorizedException());
-      return socket.disconnect();
-    }
-
-    const split = handshakeAuthorization.split(' ');
-    if (split.length < 2) {
+    if (isEmpty(token)) {
       this.server.to(socket.id).emit('error', new UnauthorizedException());
       return socket.disconnect();
     }
@@ -48,7 +42,7 @@ export class NotificationsGateway
         this.configService.get<string>('AUTH_SVC_URL'),
         {
           headers: {
-            Authorization: `Bearer ${split[1]}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       );
