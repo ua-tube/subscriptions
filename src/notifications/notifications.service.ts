@@ -3,7 +3,7 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { PersistNotificationDto } from './dto';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { fromEvent, map } from 'rxjs';
+import { fromEvent, interval, map } from 'rxjs';
 
 @Injectable()
 export class NotificationsService {
@@ -76,11 +76,12 @@ export class NotificationsService {
   }
 
   sse(userId: string) {
-    return fromEvent(this.eventEmitter, `notify.${userId}`).pipe(
-      map((data) => {
-        return data as MessageEvent;
-      }),
-    );
+    return interval(1000).pipe(map(() => ({ data: 'test' })));
+    // return fromEvent(this.eventEmitter, `notify.${userId}`).pipe(
+    //   map((data) => {
+    //     return data as MessageEvent;
+    //   }),
+    // );
   }
 
   private getKey(creatorId: string, notificationId?: string) {

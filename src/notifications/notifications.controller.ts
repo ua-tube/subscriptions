@@ -28,14 +28,9 @@ export class NotificationsController {
     ackMessage(context);
   }
 
-  @UseGuards(AuthUserSseGuard)
-  @Sse('sse/:userId')
-  sse(
-    @Param('userId', ParseUUIDPipe) userIdFromPath: string,
-    @UserId() userId: string,
-  ) {
-    if (userIdFromPath !== userId) throw new ForbiddenException();
-
+  //@UseGuards(AuthUserSseGuard)
+  @Sse('sse')
+  sse(@UserId() userId: string) {
     return this.notificationsService.sse(userId);
   }
 
