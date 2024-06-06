@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 COPY . .
 
@@ -24,7 +24,7 @@ COPY --chown=node:node --from=build /app/.env .env
 COPY --chown=node:node --from=build /app/package*.json ./
 
 RUN chmod +x entrypoint.sh
-RUN npm install --omit=dev --legacy-peer-deps
+RUN npm install --omit=dev
 COPY --chown=node:node --from=build /app/node_modules/.prisma/client  ./node_modules/.prisma/client
 
 ENV NODE_ENV production
