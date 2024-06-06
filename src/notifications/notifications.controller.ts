@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { AuthUserGuard } from '../common/guards';
+import { AuthUserGuard, AuthUserSseGuard } from '../common/guards';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { PersistNotificationDto } from './dto';
 import { ackMessage } from '../common/utils';
@@ -28,7 +28,7 @@ export class NotificationsController {
     ackMessage(context);
   }
 
-  @UseGuards(AuthUserGuard)
+  @UseGuards(AuthUserSseGuard)
   @Sse('sse/:userId')
   sse(
     @Param('userId', ParseUUIDPipe) userIdFromPath: string,
