@@ -3,7 +3,7 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { PersistNotificationDto } from './dto';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { fromEvent, map } from 'rxjs';
-import { Redis } from 'ioredis';
+import Redis from 'ioredis';
 
 @Injectable()
 export class NotificationsService {
